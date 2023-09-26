@@ -1,0 +1,97 @@
+document.addEventListener("DOMContentLoaded", function () {
+    const submissionForm = document.getElementById("submissionForm");
+    submissionForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        if (!validateForm()) {
+            return;
+        }
+        const formData = new FormData(submissionForm);
+        fetch("/arraytics2/public/index.php?action=submit", {
+            method: "POST",
+            body: formData,
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data=='success') {
+                    alert("Submission successful!");
+                    submissionForm.reset();
+                } else {
+                    alert("Submission failed. Please try again.");
+                }
+            })
+            .catch((error) => {
+                alert("An error occurred while submitting the form.");
+                console.error(error);
+            });
+    });
+
+    function validateForm() {
+        const amountField = document.getElementById("amount");
+        const buyerField = document.getElementById("buyer");
+        if (!/^[0-9]+$/.test(amountField.value)) {
+            $("#amount-error").text("Amount must be a number.");
+            return false;
+        }
+        if (buyerField.value.length > 20) {
+            alert("Buyer name must not exceed 20 characters.");
+            return false;
+        }
+        return true;
+    }
+});
+$(document).ready(function() {
+    $.ajax({
+            url: "/arraytics2/public/index.php?action=fetch", 
+            type: "get",
+        
+            success: function(data) {
+                var response = JSON.parse(data);
+            tr ='';
+            for (var i = 0; i < response.length; i++) {
+                tr +=
+                    "<tr><td>" + response[i].id + "</td><td>"  + response[i].amount + "</td><td>" + response[i].buyer + "</td>" +
+                    "<td>" + response[i].receipt_id + "</td><td>" + response[i].items + "</td>" +
+                    "<td>" + response[i].buyer_email + "</td><td>" +response[i].note+ "</td>" +
+                    "<td>" + response[i].city + "</td><td>" + response[i].phone + "</td>" +
+                    "<td>" + response[i].entry_at + "</td><td>" + response[i].entry_by + "</td>" +
+                    "</tr>";
+            }
+            $('tbody').html(tr);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + " - " + error);
+            }
+        });
+    $("form").on("submit", function(e) {
+        e.preventDefault();
+        var startDate = $("#startDate").val();
+        var endDate = $("#endDate").val();
+        var userId = $("#userId").val();
+        $.ajax({
+            url: "/arraytics2/public/index.php?action=filter",
+            type: "POST",
+            data: {
+                startDate: startDate,
+                endDate: endDate,
+                userId: userId
+            },
+            success: function(data) {
+                var response = JSON.parse(data);
+            tr ='';
+            for (var i = 0; i < response.length; i++) {
+                tr +=
+                    "<tr><td>" + response[i].id + "</td><td>"  + response[i].amount + "</td><td>" + response[i].buyer + "</td>" +
+                    "<td>" + response[i].receipt_id + "</td><td>" + response[i].items + "</td>" +
+                    "<td>" + response[i].buyer_email + "</td><td>" +response[i].note+ "</td>" +
+                    "<td>" + response[i].city + "</td><td>" + response[i].phone + "</td>" +
+                    "<td>" + response[i].entry_at + "</td><td>" + response[i].entry_by + "</td>" +
+                    "</tr>";
+            }
+            $('tbody').html(tr);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error: " + status + " - " + error);
+            }
+        });
+    });
+});
